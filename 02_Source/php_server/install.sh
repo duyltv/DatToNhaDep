@@ -1,6 +1,6 @@
 #!/bin/bash
 # GLOBAL VARIABLES
-INS_PATH=/mnt/c/xampp/htdocs/
+INS_PATH=/var/www/html/
 APP_NAME=DTND
 
 function clean_dir {
