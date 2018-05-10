@@ -2,6 +2,16 @@
  
 class Index_Controller extends BK_Controller
 {
+	function generateRandomString($length = 10) {
+	    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	    $charactersLength = strlen($characters);
+	    $randomString = '';
+	    for ($i = 0; $i < $length; $i++) {
+	        $randomString .= $characters[rand(0, $charactersLength - 1)];
+	    }
+	    return $randomString;
+	}
+
     public function indexAction()
     {
     	if ($_POST['data'])
@@ -12,7 +22,7 @@ class Index_Controller extends BK_Controller
 
 	    	header("Content-Type: application/json; charset=UTF-8");
 
-	    	$received_data = json_decode ($received_json);
+	    	$received_data = json_decode ($received_json, true);
 
 	    	$output_data = $this->ProcessInput ($received_data);
 	        
@@ -22,6 +32,56 @@ class Index_Controller extends BK_Controller
 
     function ProcessInput($raw_data)
     {
-    	return $raw_data;
+    	if ($raw_data["mcode"])
+    	{
+    		switch ($raw_data["mcode"]) {
+				case "login":
+					$email = $raw_data["email"];
+					$pass = md5 ($raw_data["password"]);
+					return $this->Login ($email, $pass);
+					break;
+				default:
+					return array (	"mcode" => "login",
+			    					"status" => "error"
+			    				);
+			}
+    	}
+    	return array (	"mcode" => "login",
+    					"status" => "error"
+    				);
+    }
+
+    function Login($email, $pass)
+    {
+    	$this->model->load('member');
+    	$members = $this->model->get('member');
+    	foreach($members as $member)
+        {
+            if($member['email'] == $email && $member['password'] == $pass) 
+            {
+            	$session = $this->generateRandomString(7);
+            	$user_id = $member['user_id'];
+
+            	$update_data = array (
+            					'session' => $session
+            					);
+
+            	$this->model->update_manual('member', $update_data, 'user_id='.$user_id);
+
+            	$return_data = array (
+            					'user_id' => $user_id,
+            					'session' => $session
+            						);
+
+            	return array (	"mcode" => "login",
+		    					"status" => "success",
+		    					"data" => $return_data
+		    					);
+            }
+        }
+
+    	return array (	"mcode" => "login",
+    					"status" => "error"
+    				);
     }
 }
