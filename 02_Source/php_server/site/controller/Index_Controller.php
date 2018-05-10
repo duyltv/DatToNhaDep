@@ -37,16 +37,23 @@ class Index_Controller extends BK_Controller
     		switch ($raw_data["mcode"]) {
 				case "login":
 					$email = $raw_data["email"];
-					$pass = md5 ($raw_data["password"]);
+					$pass = $raw_data["password"];
 					return $this->Login ($email, $pass);
 					break;
+
+				case "check_login":
+					$user_id = $raw_data["user_id"];
+					$session = $raw_data["session"];
+					return $this->CheckLogin ($user_id, $session);
+					break;
+					
 				default:
 					return array (	"mcode" => "login",
 			    					"status" => "error"
 			    				);
 			}
     	}
-    	return array (	"mcode" => "login",
+    	return array (	"mcode" => "error",
     					"status" => "error"
     				);
     }
@@ -81,6 +88,26 @@ class Index_Controller extends BK_Controller
         }
 
     	return array (	"mcode" => "login",
+    					"status" => "error"
+    				);
+    }
+
+    function CheckLogin($user_id, $session)
+    {
+    	$this->model->load('member');
+    	$members = $this->model->get('member');
+
+    	foreach($members as $member)
+        {
+            if($member['user_id'] == $user_id && $member['session'] == $session) 
+            {
+            	return array (	"mcode" => "check_login",
+		    					"status" => "success"
+		    				);
+            }
+        }
+
+        return array (	"mcode" => "check_login",
     					"status" => "error"
     				);
     }
