@@ -46,7 +46,13 @@ class Index_Controller extends BK_Controller
 					$session = $raw_data["session"];
 					return $this->CheckLogin ($user_id, $session);
 					break;
-					
+
+				case "logout":
+					$user_id = $raw_data["user_id"];
+					$session = $raw_data["session"];
+					return $this->Logout ($user_id, $session);
+					break;
+
 				default:
 					return array (	"mcode" => "login",
 			    					"status" => "error"
@@ -99,7 +105,7 @@ class Index_Controller extends BK_Controller
 
     	foreach($members as $member)
         {
-            if($member['user_id'] == $user_id && $member['session'] == $session) 
+            if($member['user_id'] == $user_id && $member['session'] == $session && $member['session'] != '') 
             {
             	return array (	"mcode" => "check_login",
 		    					"status" => "success"
@@ -108,6 +114,32 @@ class Index_Controller extends BK_Controller
         }
 
         return array (	"mcode" => "check_login",
+    					"status" => "error"
+    				);
+    }
+
+    function Logout($user_id, $session)
+    {
+    	$this->model->load('member');
+    	$members = $this->model->get('member');
+
+    	foreach($members as $member)
+        {
+            if($member['user_id'] == $user_id && $member['session'] == $session && $member['session'] != '') 
+            {
+            	$update_data = array (
+            					'session' => ''
+            					);
+
+            	$this->model->update_manual('member', $update_data, 'user_id='.$user_id);
+
+            	return array (	"mcode" => "logout",
+		    					"status" => "success"
+		    				);
+            }
+        }
+
+        return array (	"mcode" => "logout",
     					"status" => "error"
     				);
     }
