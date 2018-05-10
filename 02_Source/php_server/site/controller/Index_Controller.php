@@ -37,7 +37,7 @@ class Index_Controller extends BK_Controller
     		switch ($raw_data["mcode"]) {
 				case "login":
 					$email = $raw_data["email"];
-					$pass = $raw_data["password"];
+					$pass = $raw_data["password"]; // MD5 encoded
 					return $this->Login ($email, $pass);
 					break;
 
@@ -53,8 +53,18 @@ class Index_Controller extends BK_Controller
 					return $this->Logout ($user_id, $session);
 					break;
 
+				case "register":
+					$name = $raw_data["name"];
+					$phone = $raw_data["phone"];
+					$email = $raw_data["email"];
+					$password = $raw_data["password"]; // MD5 encoded
+					$avatar = $raw_data["avatar"]; // path to image
+					$address = $raw_data["address"];
+					return $this->Register($name, $phone, $email, $password, $avatar, $address);
+					break;
+
 				default:
-					return array (	"mcode" => "login",
+					return array (	"mcode" => "error",
 			    					"status" => "error"
 			    				);
 			}
@@ -72,6 +82,14 @@ class Index_Controller extends BK_Controller
         {
             if($member['email'] == $email && $member['password'] == $pass) 
             {
+            	if($member['validated'] == "0")
+            	{
+            		return array (	"mcode" => "login",
+			    					"status" => "error",
+			    					"data" => "not_validated"
+			    				);
+            	}
+
             	$session = $this->generateRandomString(7);
             	$user_id = $member['user_id'];
 
@@ -94,7 +112,8 @@ class Index_Controller extends BK_Controller
         }
 
     	return array (	"mcode" => "login",
-    					"status" => "error"
+    					"status" => "error",
+    					"data" => "fail"
     				);
     }
 
@@ -114,7 +133,8 @@ class Index_Controller extends BK_Controller
         }
 
         return array (	"mcode" => "check_login",
-    					"status" => "error"
+    					"status" => "error",
+    					"data" => "fail"
     				);
     }
 
@@ -140,7 +160,57 @@ class Index_Controller extends BK_Controller
         }
 
         return array (	"mcode" => "logout",
-    					"status" => "error"
+    					"status" => "error",
+    					"data" => "fail"
+    				);
+    }
+
+    function Register($name, $phone, $email, $password, $avatar, $address)
+    {
+    	$this->model->load('member');
+    	$members = $this->model->get('member');
+
+    	// Check if user existed
+    	foreach($members as $member)
+        {
+            if($member['phone'] == $phone) 
+            {
+            	return array (	"mcode" => "register",
+		    					"status" => "error",
+		    					"data" => "phone_exist"
+		    				);
+            }
+            elseif ($member['email'] == $email) 
+            {
+            	return array (	"mcode" => "register",
+		    					"status" => "error",
+		    					"data" => "email_exist"
+		    				);
+            }
+        }
+
+        // Add user to database
+        $data = array(
+            'name' => $name,
+            'phone' => $phone,
+            'email' => $email,
+            'password' => $password,
+            'avatar' => $avatar,
+            'address' => $address,
+            'session' => '',
+            'validated' => 0
+        );
+
+        if ($this->model->insert('member', $data))
+        {
+        	return array (	"mcode" => "register",
+	    					"status" => "success"
+	    				);
+        }
+
+        return array (	"mcode" => "register",
+    					"status" => "error",
+    					"data" => "data_error"
     				);
     }
 }
