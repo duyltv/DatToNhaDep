@@ -101,6 +101,10 @@ class Index_Controller extends BK_Controller
 
             	$return_data = array (
             					'user_id' => $user_id,
+            					'email' => $member['email'],
+            					'phone' => $member['phone'],
+            					'avatar' => $member['avatar'],
+            					'address' => $member['address'],
             					'session' => $session
             						);
 
