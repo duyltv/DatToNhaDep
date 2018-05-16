@@ -1,0 +1,15 @@
+﻿Ràng buộc nghiệp vụ:
+- transaction: Được hệ thống tạo ra khi nhận được lệnh từ thành viên MODERATOR
+	+ amount: Lớn hơn hoặc bằng 10.000 VND
+- member: Được hệ thống tạo ra khi khách đăng ký thành công và kích hoạt thành viên (active) thành công
+	+ password: mã hóa dưới dạng MD5
+	+ avatar: địa chỉ tương đối của đường dẫn file avatar
+- content: Được hệ thống tạo ra khi nhận được thông tin từ thành viên MEMBER. status được sửa đổi bởi hệ thống khi có lệnh từ thành viên MODERATOR
+	+ priority: Tùy theo quy định các hạng của tin đăng. Max(priority) là số các hạng của tin đăng
+	+ status: 0 - chưa duyệt; 1 - đã duyệt; 2 - không được duyệt
+- images: Được hệ thống tạo ra khi tệp tin được tải lên hệ thống thành công khi nội dung của content được gửi từ thành viên MEMBER
+	+ image_url: địa chỉ tương đối của đường dẫn file hình ảnh
+
+- member <create> content: Tối đa 10 tin mỗi ngày (tránh spam tin đăng)
+- content <contain> images: Tối đa 10 hình mỗi tin (tránh quá tải hệ thống)
+
