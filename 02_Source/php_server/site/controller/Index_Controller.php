@@ -1,4 +1,6 @@
 <?php if ( ! defined('PATH_SYSTEM')) die ('Bad requested!');
+
+define("DEBUG", true);
  
 class Index_Controller extends BK_Controller
 {
@@ -26,7 +28,12 @@ class Index_Controller extends BK_Controller
 
 	    	$output_data = $this->ProcessInput ($received_data);
 	        
+	        if (DEBUG)
+	        	echo "{ \"input\": ".$received_json.", \"output\": ";
 	        echo json_encode($output_data);
+
+	        if (DEBUG)
+	        	echo "}";
 	    }
     }
 
@@ -86,6 +93,19 @@ class Index_Controller extends BK_Controller
 				case "get_content_type_list":
 					$session = $raw_data["session"];
 					return $this->GetContentTypeList($session);
+					break;
+
+				case "get_expand_content_define":
+					$session = $raw_data["session"];
+					$type_id = $raw_data["type_id"];
+					return $this->GetExpandContentDefine($session, $type_id);
+					break;
+
+				case "add_expand_content_define":
+					$session = $raw_data["session"];
+					$type_id = $raw_data["type_id"];
+					$expand_name = $raw_data["expand_name"];
+					return $this->AddExpandContentDefine($session, $type_id, $expand_name);
 					break;
 
 				default:
@@ -410,6 +430,68 @@ class Index_Controller extends BK_Controller
     		return array (	"mcode" => "get_content_type_list",
 	    					"status" => "success",
 	    					"data" => $content_type
+	    				);
+    	}
+    }
+
+    function GetExpandContentDefine($session, $type_id)
+    {
+    	$user_id = $this->check_valid_session($session);
+    	if ($user_id == null)
+    	{
+    		return array (	"mcode" => "get_expand_content_define",
+	    					"status" => "error",
+	    					"data" => "fail"
+	    				);
+    	}
+    	else
+    	{
+    		$this->model->load('expand_content_define');
+    		$expand_content_define = $this->model->get_expand_content_define($type_id);
+
+    		return array (	"mcode" => "get_expand_content_define",
+	    					"status" => "success",
+	    					"data" => $expand_content_define
+	    				);
+    	}
+    }
+
+    function AddExpandContentDefine($session, $type_id, $expand_name)
+    {
+    	$user_id = $this->check_valid_session($session);
+    	if ($user_id == null)
+    	{
+    		return array (	"mcode" => "add_expand_content_define",
+	    					"status" => "error",
+	    					"data" => "fail"
+	    				);
+    	}
+    	else
+    	{
+    		$this->model->load('expand_content_define');
+    		$expand_content_define_list = $this->model->get("expand_content_define");
+
+    		foreach ($expand_content_define_list as $expand_content_define) {
+    			if ($expand_content_define['expand_name'] == $expand_name)
+    				return array (	"mcode" => "add_expand_content_define",
+			    					"status" => "error",
+			    					"data" => "existed"
+			    				);
+    		}
+
+    		$data = array(
+	            'type_id' => $type_id,
+	            'expand_name' => $expand_name
+	        );
+
+	        if ($this->model->insert('expand_content_define', $data))
+	        	return array (	"mcode" => "add_expand_content_define",
+		    					"status" => "success"
+		    				);
+
+	        return array (	"mcode" => "add_expand_content_define",
+	    					"status" => "error",
+	    					"data" => "fail"
 	    				);
     	}
     }
