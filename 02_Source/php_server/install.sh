@@ -10,7 +10,8 @@ function clean_dir {
 function copy_dir {
 	mkdir $INS_PATH/$APP_NAME
 	cp -rf * $INS_PATH/$APP_NAME
-	chown -R root:www-data $INS_PATH/$APP_NAME
+	chown -R www-data:www-data $INS_PATH/$APP_NAME
+	chmod 777 images
 }
 
 function check_dir {

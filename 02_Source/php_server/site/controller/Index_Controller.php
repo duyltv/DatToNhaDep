@@ -108,6 +108,22 @@ class Index_Controller extends BK_Controller
 					return $this->AddExpandContentDefine($session, $type_id, $expand_name);
 					break;
 
+				case "add_content":
+					$session = $raw_data["session"];
+					$title = $raw_data["title"];
+					$content = $raw_data["content"]; // base64 content
+					$address = $raw_data["address"];
+					$stretch = $raw_data["stretch"];
+					$price = $raw_data["price"];
+					$priority = $raw_data["priority"];
+					$date = date('d/m/Y', time());
+					$expire = $raw_data["expire"];
+					$images = $raw_data["images"];
+					$type_id = $raw_data["type_id"];
+					$expand_data = $raw_data["expand_data"];
+					return $this->AddContent($session, $title, $content, $address, $stretch, $price, $priority, $date, $expire, $images, $type_id, $expand_data);
+					break;
+
 				default:
 					return array (	"mcode" => "error",
 			    					"status" => "error"
@@ -492,6 +508,83 @@ class Index_Controller extends BK_Controller
 	        return array (	"mcode" => "add_expand_content_define",
 	    					"status" => "error",
 	    					"data" => "fail"
+	    				);
+    	}
+    }
+
+    // images is an array of base64 image
+    // expand_data is an array
+    function AddContent($session, $title, $content, $address, $stretch, $price, $priority, $date, $expire, $images, $type_id, $expand_data)
+    {
+    	$user_id = $this->check_valid_session($session);
+    	if ($user_id == null)
+    	{
+    		return array (	"mcode" => "add_content",
+	    					"status" => "error",
+	    					"data" => "fail"
+	    				);
+    	}
+    	else
+    	{
+    		$this->model->load('content');
+
+    		$data = array(
+	            "title" => $title,
+	            "content" => $content,
+	            "address" => $address,
+	            "stretch" => $stretch,
+	            "price" => $price,
+	            "priority" => $priority,
+	            "status" => 0,
+	            "date" => $date,
+	            "expiredate" => $expire,
+	            "user_id" => $user_id,
+	            "type_id" => $type_id
+	        );
+
+	        if (! $this->model->insert('content', $data))
+	        	return array (	"mcode" => "add_content",
+		    					"status" => "error",
+		    					"data" => "fail 1"
+		    				);
+
+	        $content_id = $this->model->conn->insert_id;
+
+	        $this->model->load('expand_content');
+	        foreach ($expand_data as $expand) {
+	        	$data = array(
+	        		"expand_id" => $expand["expand_id"],
+	        		"expand_content" => $expand["expand_content"]
+	        	);
+
+	        	if (! $this->model->insert('expand_content', $data))
+		        	return array (	"mcode" => "add_content",
+			    					"status" => "error",
+			    					"data" => "fail 2"
+			    				);
+	        }
+
+	        $this->model->load('images');
+	        foreach ($images as $image) {
+	        	$image_raw = base64_decode($image);
+	        	$filename = $this->generateRandomString(7).".png";
+	        	$filepath = './images/'.$filename;
+				file_put_contents($filepath, $image_raw);
+
+				$data = array(
+					"image_url" => $filepath,
+					"content_id" => $content_id
+				);
+
+				if (! $this->model->insert('images', $data))
+		        	return array (	"mcode" => "add_content",
+			    					"status" => "error",
+			    					"data" => "fail 3"
+			    				);
+	        }
+
+	        return array (	"mcode" => "add_content",
+	    					"status" => "success"
 	    				);
     	}
     }

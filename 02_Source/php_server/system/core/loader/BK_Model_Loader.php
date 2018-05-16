@@ -2,7 +2,7 @@
  
 class BK_Model_Loader
 {
-    protected $conn = NULL;
+    public $conn = NULL;
     /**
      * Load model
      *
