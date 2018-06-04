@@ -86,7 +86,8 @@ class Index_Controller extends BK_Controller
 
 				case "add_moderator":
 					$session = $raw_data["session"];
-					return $this->AddModerator($session);
+                    $user_id_mod = $raw_data["user_id_mod"];
+					return $this->AddModerator($session, $user_id_mod);
 					break;
 
 				case "add_content_type":
@@ -347,7 +348,7 @@ class Index_Controller extends BK_Controller
 
     		foreach($mod_list as $mod)
         	{
-        		if ($mod['is_mod'] == true)
+        		if ($mod['user_id'] == $user_id)
         			return true;
         	}
     	}
@@ -399,7 +400,7 @@ class Index_Controller extends BK_Controller
     	{
     		$this->model->load('member');
 
-            if ($this->check_moderator($user_id))
+            if (!$this->check_moderator($user_id))
             {
                 return array (  "mcode" => "add_moderator",
                                 "status" => "error",
@@ -416,7 +417,7 @@ class Index_Controller extends BK_Controller
     		}
 
         	$data = array(
-	            'is_mod' => true
+	            'is_mod' => "1"
 	        );
 
 	        if ($this->model->update_manual('member', $data, "user_id=\"".$user_id_mod."\""))

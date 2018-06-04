@@ -157,7 +157,7 @@ class BK_Model_Loader
 		$query = $query . "$keys[$max_1] = '$values[$max_1]' ";
 		$query = $query . "WHERE id = '$values[0]'";
 
-		$this->mysqli_query_internal($this->conn,$query);
+		return $this->mysqli_query_internal($this->conn,$query);
     }
 
     /**
@@ -182,7 +182,7 @@ class BK_Model_Loader
 		$query = $query . "$keys[$max_1] = '$values[$max_1]' ";
 		$query = $query . "WHERE " . $condition;
 
-		$this->mysqli_query_internal($this->conn,$query);
+		return $this->mysqli_query_internal($this->conn,$query);
     }
 	
 	/**
@@ -206,7 +206,7 @@ class BK_Model_Loader
 		$max_1 = $max-1;
 		$query = $query . "$keys[$max_1] = '$values[$max_1]' ";
 
-		$this->mysqli_query_internal($this->conn,$query);
+		return $this->mysqli_query_internal($this->conn,$query);
     }
 
 
@@ -252,7 +252,7 @@ class BK_Model_Loader
 
 		$query = "select * 
 		         from member
-		         where is_mod=\"true\"";
+		         where is_mod=\"1\"";
 		$result_q = $this->mysqli_query_internal($this->conn,$query);
 
 		$result = array();
