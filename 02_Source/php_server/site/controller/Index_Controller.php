@@ -145,6 +145,21 @@ class Index_Controller extends BK_Controller
                     $session = $raw_data["session"];
                     $content_id = $raw_data["content_id"];
                     return $this->ApproveContent($session, $content_id);
+                    break;
+
+                case "add_role_define":
+                    $session = $raw_data["session"];
+                    $role_name = $raw_data["role_name"];
+                    return $this->AddRoleDefine($session, $role_name);
+                    break;
+
+                case "add_role":
+                    $session = $raw_data["session"];
+                    $role_id = $raw_data["role_id"];
+                    $type_id = $raw_data["type_id"];
+                    $role_code = $raw_data["role_code"];
+                    return $this->AddRole($session, $role_id, $type_id, $role_code);
+                    break;
 
 				default:
 					return array (	"mcode" => "error",
@@ -711,6 +726,101 @@ class Index_Controller extends BK_Controller
         return array (  "mcode" => "approve_content",
                         "status" => "error",
                         "data" => "fail"
+                    );
+    }
+
+    function AddRoleDefine($session, $role_name)
+    {
+        $user_id = $this->check_valid_session($session);
+        if ($user_id == null)
+        {
+            
+        }
+        else
+        {
+            if ($this->check_moderator($user_id))
+            {
+                $this->model->load('role_define');
+                $role_defines=$this->model->get('role_define');
+
+                foreach($role_defines as $role_define)
+                {
+                    if ($role_define['name'] == $role_name)
+                    {
+                        return array (  "mcode" => "add_role_define",
+                                        "status" => "error",
+                                        "data" => "role_existed"
+                                    );
+                    }
+                }
+
+                $data = array(
+                    'name' => $role_name,
+                );
+
+                if ($this->model->insert('role_define', $data))
+                {
+                    return array (  "mcode" => "add_role_define",
+                                    "status" => "success"
+                                );
+                }
+
+                return array (  "mcode" => "add_role_define",
+                                "status" => "error",
+                                "data" => "data_error"
+                            );
+            }
+
+            return array (  "mcode" => "add_role_define",
+                            "status" => "permission_denied"
+                        );
+        }
+
+        return array (  "mcode" => "add_role_define",
+                        "status" => "error",
+                        "date" => "fail"
+                    );
+    }
+
+    function AddRole($session, $role_id, $type_id, $role_code)
+    {
+        $user_id = $this->check_valid_session($session);
+        if ($user_id == null)
+        {
+            
+        }
+        else
+        {
+            if ($this->check_moderator($user_id))
+            {
+
+                $data = array(
+                    'role_id' => $role_id,
+                    'type_id' => $type_id,
+                    'role_code' => $role_code
+                );
+
+                if ($this->model->insert('roles_on_type', $data))
+                {
+                    return array (  "mcode" => "add_role",
+                                    "status" => "success"
+                                );
+                }
+
+                return array (  "mcode" => "add_role",
+                                "status" => "error",
+                                "data" => "data_error"
+                            );
+            }
+
+            return array (  "mcode" => "add_role",
+                            "status" => "permission_denied"
+                        );
+        }
+
+        return array (  "mcode" => "add_role",
+                        "status" => "error",
+                        "date" => "fail"
                     );
     }
 }
