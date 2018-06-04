@@ -317,4 +317,134 @@ class BK_Model_Loader
 
 		return $result;
 	}
+
+	public function get_content_list_by_user($user_id)
+	{
+		if ($user_id == "")
+		{
+			return [];
+		}
+
+		if ($this->conn == NULL)
+		{
+			$this->load('content');
+		}
+
+		$query = "select content_id, title, avatar, stretch, price, priority, status, date, expiredate, type_id 
+		         from content
+		         where user_id=\"".$user_id."\"
+		         and status=\"1\"
+		         order by priority DESC";
+
+		$result_q = $this->mysqli_query_internal($this->conn,$query);
+
+		$result = array();
+		while ($row = mysqli_fetch_array($result_q, MYSQLI_ASSOC)) {
+			$result[] = $row;
+		}
+
+		return $result;
+	}
+
+	public function get_content_list_owner($user_id)
+	{
+		if ($user_id == "")
+		{
+			return [];
+		}
+
+		if ($this->conn == NULL)
+		{
+			$this->load('content');
+		}
+
+		$query = "select content_id, title, avatar, stretch, price, priority, status, date, expiredate, type_id 
+		         from content
+		         where user_id=\"".$user_id."\"";
+
+		$result_q = $this->mysqli_query_internal($this->conn,$query);
+
+		$result = array();
+		while ($row = mysqli_fetch_array($result_q, MYSQLI_ASSOC)) {
+			$result[] = $row;
+		}
+
+		return $result;
+	}
+
+	private function get_content($role_id, $content_id)
+	{
+		if ($content_id == "")
+		{
+			return [];
+		}
+
+		if ($this->conn == NULL)
+		{
+			$this->load('content');
+		}
+
+		$query = "select content.* from
+				(select * from roles_on_type where role_id=\"".$role_id."\" and (role_code=\"1\" or role_code=\"3\")) as role
+				join
+				(select * 
+		         from content
+		         where content_id=\"".$content_id."\") as content
+		        on role.type_id=content.content_id";
+
+		$result_q = $this->mysqli_query_internal($this->conn,$query);
+
+		$result = array();
+		while ($row = mysqli_fetch_array($result_q, MYSQLI_ASSOC)) {
+			$query_row = "select definition.expand_name, definition.measure_unit, content.expand_content from
+				(select expand_id, expand_name, measure_unit from expand_content_define where type_id=\"".$row["type_id"]."\") as definition
+				join
+				(select expand_id, expand_content from expand_content where content_id=\"".$content_id."\") as content
+				ON definition.expand_id=content.expand_id";
+
+			$result_q_row = $this->mysqli_query_internal($this->conn,$query_row);
+			$result_row = array();
+			while ($row_t = mysqli_fetch_array($result_q_row, MYSQLI_ASSOC)) {
+				$result_row[] = $row_t;
+			}
+
+			$row["expand_content"] = $result_row;
+
+			$result[] = $row;
+		}
+
+		return $result;
+	}
+
+	public function get_content_anonymous($content_id)
+	{
+		$role_id = 0;
+		return $this->get_content($role_id, $content_id);
+	}
+
+	public function get_content_with_permission($user_id, $content_id)
+	{
+		if ($this->conn == NULL)
+		{
+			$this->load('member');
+		}
+
+		$query = "select role_id 
+		         from member
+		         where user_id=\"".$user_id."\"";
+
+		$result_q = $this->mysqli_query_internal($this->conn,$query);
+
+		$result = array();
+		while ($row = mysqli_fetch_array($result_q, MYSQLI_ASSOC)) {
+			$result[] = $row;
+		}
+
+		if (sizeof($result) == 0)
+			return [];
+
+		$role_id = $result[0]["role_id"];
+
+		return $this->get_content($role_id, $content_id);
+	}
 }

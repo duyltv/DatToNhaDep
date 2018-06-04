@@ -169,6 +169,23 @@ class Index_Controller extends BK_Controller
                     return $this->AddTransaction($session, $user_id_add, $amount, $description);
                     break;
 
+                case "get_content_list_by_user":
+                    $user_id = $raw_data["user_id"];
+                    return $this->GetContentByUser($user_id);
+                    break;
+
+                case "get_content_list_owner":
+                    $session = $raw_data["session"];
+                    return $this->GetContentOwner($session);
+                    break;
+
+                case "get_content":
+                    $session = "";
+                    if (isset($raw_data["session"]))
+                        $session = $raw_data["session"];
+                    $content_id = $raw_data["content_id"];
+                    return $this->GetContent($session, $content_id);
+
 				default:
 					return array (	"mcode" => "error",
 			    					"status" => "error"
@@ -892,5 +909,73 @@ class Index_Controller extends BK_Controller
                         "status" => "error",
                         "date" => "fail"
                     );
+    }
+
+    function GetContentByUser($user_id)
+    {
+        $content_list = $this->model->get_content_list_by_user($user_id);
+
+        return array (  "mcode" => "get_content_list_by_user",
+                        "status" => "success",
+                        "data" => $content_list
+                    );
+    }
+
+    function GetContentOwner($session)
+    {
+        $user_id = $this->check_valid_session($session);
+        if ($user_id == null)
+        {
+            
+        }
+        else
+        {
+            $content_list = $this->model->get_content_list_by_user($user_id);
+
+            return array (  "mcode" => "get_content_list_owner",
+                            "status" => "success",
+                            "data" => $content_list
+                        );
+        }
+
+        return array (  "mcode" => "get_content_list_owner",
+                        "status" => "error",
+                        "date" => "fail"
+                    );
+    }
+
+    function GetContent($session, $content_id)
+    {
+        if ($session == "")
+        {
+            $content = $this->model->get_content_anonymous($content_id);
+
+            return array (  "mcode" => "get_content",
+                            "status" => "success",
+                            "date" => $content
+                        );
+        }
+        else
+        {
+            $user_id = $this->check_valid_session($session);
+            if ($user_id == null)
+            {
+                
+            }
+            else
+            {
+                $content = $this->model->get_content_with_permission($user_id, $content_id);
+
+                return array (  "mcode" => "get_content",
+                                "status" => "success",
+                                "date" => $content
+                            );
+            }
+
+            return array (  "mcode" => "get_content",
+                            "status" => "error",
+                            "date" => "fail"
+                        );
+        }
     }
 }
