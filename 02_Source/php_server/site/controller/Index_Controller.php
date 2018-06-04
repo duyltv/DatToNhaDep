@@ -161,6 +161,14 @@ class Index_Controller extends BK_Controller
                     return $this->AddRole($session, $role_id, $type_id, $role_code);
                     break;
 
+                case "add_transaction":
+                    $session = $raw_data["session"];
+                    $user_id_add = $raw_data["user_id_add"];
+                    $amount = $raw_data["amount"];
+                    $description = $raw_data["description"];
+                    return $this->AddTransaction($session, $user_id_add, $amount, $description);
+                    break;
+
 				default:
 					return array (	"mcode" => "error",
 			    					"status" => "error"
@@ -819,6 +827,68 @@ class Index_Controller extends BK_Controller
         }
 
         return array (  "mcode" => "add_role",
+                        "status" => "error",
+                        "date" => "fail"
+                    );
+    }
+
+    function AddTransaction($session, $user_id_add, $amount, $description="")
+    {
+        $user_id = $this->check_valid_session($session);
+        if ($user_id == null)
+        {
+            
+        }
+        else
+        {
+            if ($this->check_moderator($user_id))
+            {
+
+                $data = array(
+                    'user_id' => $user_id_add,
+                    'amount' => $amount,
+                    'date' => date('d/m/Y', time()),
+                    'time' => date("H:i:s"),
+                    'description' => $description
+                );
+
+                if ($this->model->insert('transaction', $data))
+                {
+                    $this->model->load('member');
+                    $members = $this->model->get('member');
+                    $cur_balance=(int) $amount;
+                    foreach($members as $member)
+                    {
+                        if($member['user_id'] == $user_id_add) 
+                        {
+                            $cur_balance = $cur_balance + (int) $member['balance'];
+                            break;
+                        }
+                    }
+
+                    $update_data = array (
+                                'balance' => $cur_balance
+                                );
+
+                    $this->model->update_manual('member', $update_data, 'user_id='.$user_id_add);
+
+                    return array (  "mcode" => "add_transaction",
+                                    "status" => "success"
+                                );
+                }
+
+                return array (  "mcode" => "add_transaction",
+                                "status" => "error",
+                                "data" => "data_error"
+                            );
+            }
+
+            return array (  "mcode" => "add_transaction",
+                            "status" => "permission_denied"
+                        );
+        }
+
+        return array (  "mcode" => "add_transaction",
                         "status" => "error",
                         "date" => "fail"
                     );
