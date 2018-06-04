@@ -287,4 +287,34 @@ class BK_Model_Loader
 
 		return $result;
 	}
+
+	public function get_content_list_by_type($type_id)
+	{
+		if ($type_id == "")
+		{
+			return [];
+		}
+
+		if ($this->conn == NULL)
+		{
+			$this->load('content');
+		}
+
+		$query = "select content_id, title, avatar, stretch, price, priority, status, date, expiredate, type_id 
+		         from content
+		         where type_id=\"".$type_id."\"
+		         and CURDATE()>=STR_TO_DATE(date, '%d/%m/%Y')
+		         and CURDATE()<=STR_TO_DATE(expiredate, '%d/%m/%Y')
+		         and status=\"1\"
+		         order by priority DESC";
+
+		$result_q = $this->mysqli_query_internal($this->conn,$query);
+
+		$result = array();
+		while ($row = mysqli_fetch_array($result_q, MYSQLI_ASSOC)) {
+			$result[] = $row;
+		}
+
+		return $result;
+	}
 }

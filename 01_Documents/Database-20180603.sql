@@ -74,6 +74,7 @@ Create table expand_content_define (
 	expand_id Int NOT NULL AUTO_INCREMENT,
 	expand_name Char(255) NOT NULL,
 	type_id Int NOT NULL,
+	measure_unit Char(20) NOT NULL,
 	is_ai_feature Bool,
  Primary Key (expand_id)) ENGINE = MyISAM;
 
@@ -124,6 +125,7 @@ ALTER TABLE transaction MODIFY COLUMN description VARCHAR(255) CHARACTER SET utf
 ALTER TABLE content_type MODIFY COLUMN type_name VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
 
 ALTER TABLE expand_content_define MODIFY COLUMN expand_name VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
+ALTER TABLE expand_content_define MODIFY COLUMN measure_unit VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
 
 ALTER TABLE expand_content MODIFY COLUMN expand_content VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
 
@@ -136,4 +138,31 @@ ALTER TABLE role_define MODIFY COLUMN name VARCHAR(255) CHARACTER SET utf8 COLLA
 /* Add dada */
 INSERT INTO `member` (`user_id`, `name`, `phone`, `email`, `password`, `avatar`, `address`, `role_id`, `balance`, `is_mod`, `validated`, `session`) VALUES
 (1, 'Thanh Trúc', '0123456789', 'thanhtruc95@gmail.com', 'e807f1fcf82d132f9bb018ca6738a19f', '', 'Biên Hòa, Đồng Nai', 1, 0, 0, 0, 'kbRyfG9'),
-(2, 'Ngọc Duy', '0981815431', 'ngocduy1842@gmail.com', 'e807f1fcf82d132f9bb018ca6738a19f', '', 'Trảng Bom, Đồng Nai', 1, 0, 0, 0, 'QT5yPGv');
+(2, 'Ngọc Duy', '0981815431', 'ngocduy1842@gmail.com', 'e807f1fcf82d132f9bb018ca6738a19f', '', 'Trảng Bom, Đồng Nai', 1, 0, 1, 1, 'QT5yPGv');
+
+INSERT INTO `content_type` (`type_id`, `type_name`) VALUES
+(1, 'Nhà bán'),
+(2, 'Nhà cho thuê');
+
+INSERT INTO `expand_content_define` (`expand_id`, `expand_name`, `type_id`, `measure_unit`, `is_ai_feature`) VALUES
+(1, 'Số tầng', 1, 'tầng', 0),
+(2, 'Số phòng ngủ', 1, 'phòng', 0),
+(3, 'Số WC', 1, 'phòng', 0),
+(4, 'Rộng mặt tiền', 1, 'm', 0);
+
+INSERT INTO `content` (`content_id`, `title`, `content`, `address`, `stretch`, `price`, `avatar`, `priority`, `status`, `date`, `expiredate`, `user_id`, `type_id`) VALUES
+(1, 'CHÍNH CHỦ BÁN NHÀ, MẶT TIỀN LÊ VĂN SỸ, QUẬN 3', 'Q2jDrW5oIGNo4bunIGLDoW4gbmjDoCBt4bq3dCB0aeG7gW4gxJHGsOG7nW5nIEzDqiBWxINuIFPhu7ksIFBoxrDhu51uZyAxMywgUXXhuq1uIDMuDQpEVDogNCB4MTYuNW0gdnXDtG5nIHbhu6ljIGtow7RuZyBs4buZIGdp4bubaS4NCkvhur90IGPhuqV1IDEgdHLhu4d0LCAyIGzhuqd1LCBzw6JuIHRoxrDhu6NuZy4NClbhu4sgdHLDrSB0dXnhu4d0IMSR4bq5cCBn4bqnbiBjaOG7oyBOZ3V54buFbiBWxINuIFRy4buXaSwga2h1IHBo4buRIGtpbmggZG9hbmggYnXDtG4gYsOhbiBz4bqnbSB14bqldCwNCk7GoWkgbMO9IHTGsOG7n25nIMSR4buDIOG7nywga2luaCBkb2FuaCB2w6BuZyBi4bqhYyDEkcOhIHF1w70sIHRo4budaSB0cmFuZy4NCkhheSBraW5oIGRvYW5oIGPDoWMgbmfDoG5oIG5naOG7gSBzYW5nIHRy4buNbmcuDQpIb+G6t2MgxJHhuqd1IHTGsCBy4bqldCBoaeG7h3UgcXXhuqMuDQpHacOhIGLDoW4gY2jhu4kgMjEsMyB04bu3ICh0aMawxqFuZyBsxrDhu6NuZykuDQpMSDogMDkxNiAxODggNzcyIC0gMDk2MyAxOTEgNDk5IGfhurdwIFF1eeG6v3QuIA==', 'Đường Lê Văn Sỹ, Phường 13, Quận 3, Hồ Chí Minh', 64, 2130, './images/HvoVewA.png', 1, 1, '04/06/2018', '11/06/2018', 2, 1),
+(2, 'Nhà MT Lê văn Sỹ, Quận 3, DT: 4,2 x 13m góc 3MT, 1 lầu, 17,5 tỷ', 'R2lhIMSRw6xuaCBjw7Mgdmnhu4djIGPhuqduIGLDoW4gZ+G6pXAgbmjDoCBNVCBMw6ogVsSDbiBT4bu5LCBn4bqnbiBuZ8OjIDQgVHLhuqduIFF1YW5nIERp4buHdSwgUXXhuq1uIDMuIEtodSBwaOG7kSBLRCBzYW5nIHRy4buNbmcsIHPhuqVtIHXhuqV0LiBEVDogNCwyeDEzbSBjw7MgaOG6u20gaMO0bmcgaOG6v3QgbOG7mSBnaeG7m2ksIGzhu4EgxJHGsOG7nW5nIHLhu5luZyA1bS4gTmjDoCBr4bq/dCBj4bqldSAxIGzhuqd1LCDEkWFuZyBjaG8gdGh1w6ogNDAgdHIvIHRow6FuZy4gR2nDoSBiw6FuIDE3LDUgdOG7ty4gWGVtIG5ow6AgTEggMDkxODE4IDkzOTYgQS4gUXVhbmcuIA==', 'Đường Lê Văn Sỹ, Phường 13, Quận 3, Hồ Chí Minh', 55, 17500, './images/C5fvMQA.png', 1, 1, '01/06/2018', '15/06/2018', 2, 1);
+
+INSERT INTO `expand_content` (`content_id`, `expand_content`, `expand_id`) VALUES
+(1, '4', 1),
+(1, '5', 2),
+(2, '5', 1),
+(2, '4.5', 4);
+
+INSERT INTO `images` (`image_id`, `image_url`, `content_id`) VALUES
+(1, './images/WmU7hha.png', 1),
+(2, './images/uGVws2y.png', 1),
+(3, './images/AZBdDF6.png', 2),
+(4, './images/5uOPQI2.png', 2);
+

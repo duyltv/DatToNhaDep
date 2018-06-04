@@ -63,6 +63,12 @@ class Index_Controller extends BK_Controller
 					return $this->CheckLogin ($user_id, $session);
 					break;
 
+                case "validate":
+                    $email = $raw_data["email"];
+                    $session = $raw_data["session"];
+                    return $this->Validate ($email, $session);
+                    break;
+
 				case "logout":
 					$user_id = $raw_data["user_id"];
 					$session = $raw_data["session"];
@@ -97,21 +103,20 @@ class Index_Controller extends BK_Controller
 					break;
 
 				case "get_content_type_list":
-					$session = $raw_data["session"];
-					return $this->GetContentTypeList($session);
+					return $this->GetContentTypeList();
 					break;
 
 				case "get_expand_content_define":
-					$session = $raw_data["session"];
 					$type_id = $raw_data["type_id"];
-					return $this->GetExpandContentDefine($session, $type_id);
+					return $this->GetExpandContentDefine($type_id);
 					break;
 
 				case "add_expand_content_define":
 					$session = $raw_data["session"];
 					$type_id = $raw_data["type_id"];
 					$expand_name = $raw_data["expand_name"];
-					return $this->AddExpandContentDefine($session, $type_id, $expand_name);
+                    $unit = $raw_data["unit"];
+					return $this->AddExpandContentDefine($session, $type_id, $expand_name, $unit);
 					break;
 
 				case "add_content":
@@ -121,14 +126,25 @@ class Index_Controller extends BK_Controller
 					$address = $raw_data["address"];
 					$stretch = $raw_data["stretch"];
 					$price = $raw_data["price"];
-					$priority = $raw_data["priority"];
+                    $avatar = $raw_data["avatar"];
+					$priority = "1";
 					$date = date('d/m/Y', time());
-					$expire = $raw_data["expire"];
+					$expire = date('d/m/Y', time() + (7 * 24 * 60 * 60));
 					$images = $raw_data["images"];
 					$type_id = $raw_data["type_id"];
 					$expand_data = $raw_data["expand_data"];
-					return $this->AddContent($session, $title, $content, $address, $stretch, $price, $priority, $date, $expire, $images, $type_id, $expand_data);
+					return $this->AddContent($session, $title, $content, $address, $stretch, $price, $avatar, $priority, $date, $expire, $images, $type_id, $expand_data);
 					break;
+
+                case "get_content_list":
+                    $type_id = $raw_data["type_id"];
+                    return $this->GetContentList($type_id);
+                    break;
+
+                case "approve_content":
+                    $session = $raw_data["session"];
+                    $content_id = $raw_data["content_id"];
+                    return $this->ApproveContent($session, $content_id);
 
 				default:
 					return array (	"mcode" => "error",
@@ -174,7 +190,7 @@ class Index_Controller extends BK_Controller
             					'address' => $member['address'],
                                 'role_id' => $member['role_id'],
                                 'balance' => $member['balance'],
-                                'validated' => $member['validaed'],
+                                'validated' => $member['validated'],
             					'session' => $session
             						);
 
@@ -294,7 +310,7 @@ class Index_Controller extends BK_Controller
     function Validate($email, $session)
     {
     	$this->model->load('member');
-    	$members = $this->model->get('member');    	$members = $this->model->get('member');
+    	$members = $this->model->get('member');
     	// Check if user existed
     	foreach($members as $member)
         {
@@ -308,11 +324,20 @@ class Index_Controller extends BK_Controller
 	            					);
 
             		$this->model->update_manual('member', $update_data, 'user_id='.$member['user_id']);
+
+                    return array (  "mcode" => "validate",
+                                    "status" => "success"
+                                );
             	}
 
             	break;
             }
         }
+
+        return array (  "mcode" => "validate",
+                        "status" => "error",
+                        "data" => "fail"
+                    );
     }
 
     /*
@@ -376,15 +401,15 @@ class Index_Controller extends BK_Controller
             if ($this->check_moderator($user_id))
             {
                 return array (  "mcode" => "check_moderator",
-                                "status" => "error",
-                                "data" => "existed"
+                                "status" => "success",
+                                "data" => "true"
                             );
             }
         }
 
         return array (  "mcode" => "check_moderator",
-                        "status" => "error",
-                        "data" => "fail"
+                        "status" => "success",
+                        "data" => "false"
                     );
     }
 
@@ -439,41 +464,56 @@ class Index_Controller extends BK_Controller
 
     function AddContentType($session, $type_name)
     {
-    	if ($this->check_moderator($session))
-    	{
-    		$this->model->load('content_type');
-    		$content_type_list = $this->model->get('content_type');
+        $user_id = $this->check_valid_session($session);
 
-    		foreach ($content_type_list as $content_type) {
-    			if ($content_type['type_name'] == $type_name)
-    				return array (	"mcode" => "add_content_type",
-			    					"status" => "error",
-			    					"data" => "existed"
-			    				);
-    		}
+        if ($user_id == null)
+        {
 
-    		$data = array(
-	            'type_name' => $type_name
-	        );
+        }
+        else
+        {
 
-	        if ($this->model->insert('content_type', $data))
-	        	return array (	"mcode" => "add_content_type",
-		    					"status" => "success"
-		    				);
+        	if ($this->check_moderator($user_id))
+        	{
+        		$this->model->load('content_type');
+        		$content_type_list = $this->model->get('content_type');
 
-	        return array (	"mcode" => "add_content_type",
-	    					"status" => "error",
-	    					"data" => "fail"
-	    				);
-    	}
+        		foreach ($content_type_list as $content_type) {
+        			if ($content_type['type_name'] == $type_name)
+        				return array (	"mcode" => "add_content_type",
+    			    					"status" => "error",
+    			    					"data" => "existed"
+    			    				);
+        		}
 
-    	return array (	"mcode" => "add_content_type",
-    					"status" => "error",
-    					"data" => "fail"
-    				);
+        		$data = array(
+    	            'type_name' => $type_name
+    	        );
+
+    	        if ($this->model->insert('content_type', $data))
+    	        	return array (	"mcode" => "add_content_type",
+    		    					"status" => "success"
+    		    				);
+
+    	        return array (	"mcode" => "add_content_type",
+    	    					"status" => "error",
+    	    					"data" => "fail"
+    	    				);
+        	}
+
+        	return array (	"mcode" => "add_content_type",
+        					"status" => "error",
+        					"data" => "permission_denied"
+        				);
+        }
+
+        return array (  "mcode" => "add_content_type",
+                        "status" => "error",
+                        "data" => "fail"
+                    );
     }
 
-    function GetContentTypeList($session)
+    function GetContentTypeList()
     {
 		$this->model->load('content_type');
 		$content_type = $this->model->get('content_type');
@@ -484,7 +524,7 @@ class Index_Controller extends BK_Controller
     				);
     }
 
-    function GetExpandContentDefine($session, $type_id)
+    function GetExpandContentDefine($type_id)
     {
 		$this->model->load('expand_content_define');
 		$expand_content_define = $this->model->get_expand_content_define($type_id);
@@ -495,44 +535,56 @@ class Index_Controller extends BK_Controller
     				);
     }
 
-    function AddExpandContentDefine($session, $type_id, $expand_name)
+    function AddExpandContentDefine($session, $type_id, $expand_name, $unit)
     {
     	$user_id = $this->check_valid_session($session);
     	if ($user_id == null)
     	{
-    		return array (	"mcode" => "add_expand_content_define",
-	    					"status" => "error",
-	    					"data" => "fail"
-	    				);
+    		
     	}
     	else
     	{
-    		$this->model->load('expand_content_define');
-    		$expand_content_define_list = $this->model->get("expand_content_define");
+            if ($this->check_moderator($user_id))
+            {
+        		$this->model->load('expand_content_define');
+        		$expand_content_define_list = $this->model->get("expand_content_define");
 
-    		foreach ($expand_content_define_list as $expand_content_define) {
-    			if ($expand_content_define['expand_name'] == $expand_name)
-    				return array (	"mcode" => "add_expand_content_define",
-			    					"status" => "error",
-			    					"data" => "existed"
-			    				);
-    		}
+        		foreach ($expand_content_define_list as $expand_content_define) {
+        			if ($expand_content_define['expand_name'] == $expand_name)
+        				return array (	"mcode" => "add_expand_content_define",
+    			    					"status" => "error",
+    			    					"data" => "existed"
+    			    				);
+        		}
 
-    		$data = array(
-	            'type_id' => $type_id,
-	            'expand_name' => $expand_name
-	        );
+        		$data = array(
+    	            'type_id' => $type_id,
+    	            'expand_name' => $expand_name,
+                    'measure_unit' => $unit,
+                    'is_ai_feature' => "0"
+    	        );
 
-	        if ($this->model->insert('expand_content_define', $data))
-	        	return array (	"mcode" => "add_expand_content_define",
-		    					"status" => "success"
-		    				);
+    	        if ($this->model->insert('expand_content_define', $data))
+    	        	return array (	"mcode" => "add_expand_content_define",
+    		    					"status" => "success"
+    		    				);
 
-	        return array (	"mcode" => "add_expand_content_define",
-	    					"status" => "error",
-	    					"data" => "fail"
-	    				);
+    	        return array (	"mcode" => "add_expand_content_define",
+    	    					"status" => "error",
+    	    					"data" => "fail"
+	    				   );
+            }
+
+            return array (  "mcode" => "add_expand_content_define",
+                            "status" => "error",
+                            "data" => "permission_denied"
+                       );
     	}
+
+        return array (  "mcode" => "add_expand_content_define",
+                        "status" => "error",
+                        "data" => "fail"
+                    );
     }
 
     // images is an array of base64 image
@@ -551,13 +603,18 @@ class Index_Controller extends BK_Controller
     	{
     		$this->model->load('content');
 
+            $avatar_raw = base64_decode($avatar);
+            $filename = $this->generateRandomString(7).".png";
+            $filepath = './images/'.$filename;
+            file_put_contents($filepath, $avatar_raw);
+
     		$data = array(
 	            "title" => $title,
 	            "content" => $content,
 	            "address" => $address,
 	            "stretch" => $stretch,
 	            "price" => $price,
-                "avatar" => $avatar,
+                "avatar" => $filepath,
 	            "priority" => $priority,
 	            "status" => 0,
 	            "date" => $date,
@@ -578,7 +635,8 @@ class Index_Controller extends BK_Controller
 	        foreach ($expand_data as $expand) {
 	        	$data = array(
 	        		"expand_id" => $expand["expand_id"],
-	        		"expand_content" => $expand["expand_content"]
+	        		"expand_content" => $expand["expand_content"],
+                    "content_id" => $content_id
 	        	);
 
 	        	if (! $this->model->insert('expand_content', $data))
@@ -613,8 +671,46 @@ class Index_Controller extends BK_Controller
     	}
     }
 
-    function GetContentList($content_id)
+    function GetContentList($type_id)
     {
+        $content_list = $this->model->get_content_list_by_type($type_id);
 
+        return array (  "mcode" => "get_content_list",
+                        "status" => "success",
+                        "data" => $content_list
+                    );
+    }
+
+    function ApproveContent($session, $content_id)
+    {
+        $user_id = $this->check_valid_session($session);
+        if ($user_id == null)
+        {
+            
+        }
+        else
+        {
+            if ($this->check_moderator($user_id))
+            {
+                $update_data = array (
+                                'status' => "1"
+                                );
+
+                $this->model->update_manual('content', $update_data, 'content_id='.$content_id);
+
+                return array (  "mcode" => "approve_content",
+                                "status" => "success"
+                            );
+            }
+
+            return array (  "mcode" => "approve_content",
+                            "status" => "permission_denied"
+                        );
+        }
+
+        return array (  "mcode" => "approve_content",
+                        "status" => "error",
+                        "data" => "fail"
+                    );
     }
 }
