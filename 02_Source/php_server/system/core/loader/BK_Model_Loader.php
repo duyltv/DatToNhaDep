@@ -243,6 +243,26 @@ class BK_Model_Loader
 		return $result;
 	}
 
+	public function get_moderator_list()
+	{
+		if ($this->conn == NULL)
+		{
+			$this->load('member');
+		}
+
+		$query = "select * 
+		         from member
+		         where is_mod=\"true\"";
+		$result_q = $this->mysqli_query_internal($this->conn,$query);
+
+		$result = array();
+		while ($row = mysqli_fetch_array($result_q, MYSQLI_ASSOC)) {
+			$result[] = $row;
+		}
+
+		return $result;
+	}
+
 	public function get_expand_content_define($type_id)
 	{
 		if ($type_id == "")

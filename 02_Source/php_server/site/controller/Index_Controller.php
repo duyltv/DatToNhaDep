@@ -41,7 +41,7 @@ class Index_Controller extends BK_Controller
     {
     	if ($raw_data["mcode"])
     	{
-    		if ($raw_data["session"])
+    		if (isset($raw_data["session"]))
     		{
     			if ($raw_data["session"] == "")
     				return array (	"mcode" => $raw_data["mcode"],
@@ -78,6 +78,11 @@ class Index_Controller extends BK_Controller
 					$address = $raw_data["address"];
 					return $this->Register($name, $phone, $email, $password, $avatar, $address);
 					break;
+
+                case "check_moderator":
+                    $session = $raw_data["session"];
+                    return $this->CheckModerator($session);
+                    break;
 
 				case "add_moderator":
 					$session = $raw_data["session"];
@@ -166,6 +171,9 @@ class Index_Controller extends BK_Controller
             					'phone' => $member['phone'],
             					'avatar' => $member['avatar'],
             					'address' => $member['address'],
+                                'role_id' => $member['role_id'],
+                                'balance' => $member['balance'],
+                                'validated' => $member['validaed'],
             					'session' => $session
             						);
 
@@ -262,7 +270,10 @@ class Index_Controller extends BK_Controller
             'password' => $password,
             'avatar' => $avatar,
             'address' => $address,
-            'session' => generateRandomString(7),
+            'role_id' => 1,
+            'balance' => 0,
+            'is_mod' => 0,
+            'session' => $this->generateRandomString(7),
             'validated' => 0
         );
 
@@ -323,22 +334,20 @@ class Index_Controller extends BK_Controller
     	}
     }
 
-    function check_moderator($session)
+    function check_moderator($user_id)
     {
-    	$user_id = $this->check_valid_session($session);
-
     	if ($user_id == null)
     	{
 
     	}
     	else
     	{
-    		$this->model->load('moderator');
-    		$mod_list = $this->model->get('moderator');
+    		$this->model->load('member');
+    		$mod_list = $this->model->get_moderator_list();
 
     		foreach($mod_list as $mod)
         	{
-        		if ($mod['user_id'] == $user_id)
+        		if ($mod['is_mod'] == true)
         			return true;
         	}
     	}
@@ -351,7 +360,34 @@ class Index_Controller extends BK_Controller
      *  END
      */
 
-    function AddModerator($session)
+    function CheckModerator($session)
+    {
+        $user_id = $this->check_valid_session($session);
+
+        if ($user_id == null)
+        {
+
+        }
+        else
+        {
+            $this->model->load('member');
+
+            if ($this->check_moderator($user_id))
+            {
+                return array (  "mcode" => "check_moderator",
+                                "status" => "error",
+                                "data" => "existed"
+                            );
+            }
+        }
+
+        return array (  "mcode" => "check_moderator",
+                        "status" => "error",
+                        "data" => "fail"
+                    );
+    }
+
+    function AddModerator($session, $user_id_mod)
     {
     	$user_id = $this->check_valid_session($session);
 
@@ -361,9 +397,17 @@ class Index_Controller extends BK_Controller
     	}
     	else
     	{
-    		$this->model->load('moderator');
+    		$this->model->load('member');
 
-    		if ($this->check_moderator($session))
+            if ($this->check_moderator($user_id))
+            {
+                return array (  "mcode" => "add_moderator",
+                                "status" => "error",
+                                "data" => "permission_denied"
+                            );
+            }
+
+    		if ($this->check_moderator($user_id_mod))
     		{
     			return array (	"mcode" => "add_moderator",
 		    					"status" => "error",
@@ -372,10 +416,10 @@ class Index_Controller extends BK_Controller
     		}
 
         	$data = array(
-	            'user_id' => $user_id
+	            'is_mod' => true
 	        );
 
-	        if ($this->model->insert('moderator', $data))
+	        if ($this->model->update_manual('member', $data, "user_id=\"".$user_id_mod."\""))
 	        	return array (	"mcode" => "add_moderator",
 		    					"status" => "success"
 		    				);
@@ -430,46 +474,24 @@ class Index_Controller extends BK_Controller
 
     function GetContentTypeList($session)
     {
-    	$user_id = $this->check_valid_session($session);
-    	if ($user_id == null)
-    	{
-    		return array (	"mcode" => "get_content_type_list",
-	    					"status" => "error",
-	    					"data" => "fail"
-	    				);
-    	}
-    	else
-    	{
-    		$this->model->load('content_type');
-    		$content_type = $this->model->get('content_type');
+		$this->model->load('content_type');
+		$content_type = $this->model->get('content_type');
 
-    		return array (	"mcode" => "get_content_type_list",
-	    					"status" => "success",
-	    					"data" => $content_type
-	    				);
-    	}
+		return array (	"mcode" => "get_content_type_list",
+    					"status" => "success",
+    					"data" => $content_type
+    				);
     }
 
     function GetExpandContentDefine($session, $type_id)
     {
-    	$user_id = $this->check_valid_session($session);
-    	if ($user_id == null)
-    	{
-    		return array (	"mcode" => "get_expand_content_define",
-	    					"status" => "error",
-	    					"data" => "fail"
-	    				);
-    	}
-    	else
-    	{
-    		$this->model->load('expand_content_define');
-    		$expand_content_define = $this->model->get_expand_content_define($type_id);
+		$this->model->load('expand_content_define');
+		$expand_content_define = $this->model->get_expand_content_define($type_id);
 
-    		return array (	"mcode" => "get_expand_content_define",
-	    					"status" => "success",
-	    					"data" => $expand_content_define
-	    				);
-    	}
+		return array (	"mcode" => "get_expand_content_define",
+    					"status" => "success",
+    					"data" => $expand_content_define
+    				);
     }
 
     function AddExpandContentDefine($session, $type_id, $expand_name)
@@ -514,7 +536,7 @@ class Index_Controller extends BK_Controller
 
     // images is an array of base64 image
     // expand_data is an array
-    function AddContent($session, $title, $content, $address, $stretch, $price, $priority, $date, $expire, $images, $type_id, $expand_data)
+    function AddContent($session, $title, $content, $address, $stretch, $price, $avatar, $priority, $date, $expire, $images, $type_id, $expand_data)
     {
     	$user_id = $this->check_valid_session($session);
     	if ($user_id == null)
@@ -534,6 +556,7 @@ class Index_Controller extends BK_Controller
 	            "address" => $address,
 	            "stretch" => $stretch,
 	            "price" => $price,
+                "avatar" => $avatar,
 	            "priority" => $priority,
 	            "status" => 0,
 	            "date" => $date,
@@ -545,7 +568,7 @@ class Index_Controller extends BK_Controller
 	        if (! $this->model->insert('content', $data))
 	        	return array (	"mcode" => "add_content",
 		    					"status" => "error",
-		    					"data" => "fail 1"
+		    					"data" => "cannot_insert_content"
 		    				);
 
 	        $content_id = $this->model->conn->insert_id;
@@ -560,7 +583,7 @@ class Index_Controller extends BK_Controller
 	        	if (! $this->model->insert('expand_content', $data))
 		        	return array (	"mcode" => "add_content",
 			    					"status" => "error",
-			    					"data" => "fail 2"
+			    					"data" => "cannot_insert_expand_content"
 			    				);
 	        }
 
@@ -579,7 +602,7 @@ class Index_Controller extends BK_Controller
 				if (! $this->model->insert('images', $data))
 		        	return array (	"mcode" => "add_content",
 			    					"status" => "error",
-			    					"data" => "fail 3"
+			    					"data" => "cannot_insert_image"
 			    				);
 	        }
 
@@ -587,5 +610,10 @@ class Index_Controller extends BK_Controller
 	    					"status" => "success"
 	    				);
     	}
+    }
+
+    function GetContentList($content_id)
+    {
+
     }
 }
