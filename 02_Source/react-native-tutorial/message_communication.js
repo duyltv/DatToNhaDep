@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { SERVER } from './configs'
+import { Base64 } from './Base64'
 
 export async function Message(mcode, json_data) {
   var utf8 = require('utf8');
@@ -21,7 +22,7 @@ export async function Message(mcode, json_data) {
   }
 
   var text = '{"mcode":"'+mcode+'", '+input_data+'}';
-  var encoded = btoa(text);
+  var encoded = Base64.btoa(text);
   var result="";
 
   const querystring = require('querystring');
@@ -30,6 +31,8 @@ export async function Message(mcode, json_data) {
   .then(res => {
     console.log(res.data);
     result = res.data;
+  }).catch((error) => {
+      console.error(error);
   });
 
   return result.output;

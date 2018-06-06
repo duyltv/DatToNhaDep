@@ -4,6 +4,7 @@ import React, { Component } from 'react'
 import ImageSlider from 'react-native-image-slider'
 import { Button } from 'react-native';
 import { SERVER } from './configs'
+import { Base64 } from './Base64'
 import {
   StyleSheet,
   Image,
@@ -12,7 +13,7 @@ import {
   TouchableHighlight,
   Text
 } from 'react-native';
-import { Message, b64DecodeUnicode } from './message_communication'
+import { Message } from './message_communication'
 
 var styles = StyleSheet.create({
   container: {
@@ -104,15 +105,22 @@ class PropertyView extends Component {
   }
 
   b64DecodeUnicode(str) {
-    return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+    return decodeURIComponent(Array.prototype.map.call(Base64.atob(str), function(c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
     }).join(''));
   }
 
   async onMapPressed(address) {
+    console.log('https://geocoder.cit.api.here.com/6.2/geocode.json?searchtext='+encodeURIComponent(address)+'&app_id=FBF6cDCEZaRWCPmaRukF&app_code=bMR-YearZ60Uiywcai_8jw&gen=1');
     let response = await fetch(
       'https://geocoder.cit.api.here.com/6.2/geocode.json?searchtext='+encodeURIComponent(address)+'&app_id=FBF6cDCEZaRWCPmaRukF&app_code=bMR-YearZ60Uiywcai_8jw&gen=1'
-    );
+    ).catch((error) => {
+      console.error(error);
+    });
+
+    if (response == undefined)
+      return;
+
     console.log(response);
     let responseJson = await response.json();
     var long = await responseJson.Response.View[0].Result[0].Location.DisplayPosition.Longitude;
@@ -207,7 +215,7 @@ class PropertyView extends Component {
         <View style={styles.expand_container}>
           {expand_content.map((prop, key) => {
              return (
-               <Text style={styles.expand_content}><Text style={{fontWeight: "bold"}}>{prop.expand_name}</Text>: {prop.expand_content} {prop.measure_unit}</Text>
+               <Text style={styles.expand_content} key={key}><Text style={{fontWeight: "bold"}} key={-key}>{prop.expand_name}</Text>: {prop.expand_content} {prop.measure_unit}</Text>
              );
           })}
           <View style={styles.separator}/>
