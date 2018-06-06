@@ -10,7 +10,8 @@ import {
   View,
   TouchableHighlight,
   ActivityIndicator,
-  Image
+  Image,
+  ScrollView
 } from 'react-native';
 
 var styles = StyleSheet.create({
@@ -22,8 +23,7 @@ var styles = StyleSheet.create({
   },
   container: {
     padding: 30,
-    marginTop: 35,
-    alignItems: 'center'
+    marginTop: 35
   },
   flowRight: {
     flexDirection: 'row',
@@ -37,7 +37,6 @@ var styles = StyleSheet.create({
   },
   button: {
     height: 36,
-    flex: 1,
     flexDirection: 'row',
     backgroundColor: '#48BBEC',
     borderColor: '#48BBEC',
@@ -51,7 +50,6 @@ var styles = StyleSheet.create({
     height: 36,
     padding: 4,
     marginRight: 5,
-    flex: 4,
     fontSize: 18,
     borderWidth: 1,
     borderColor: '#48BBEC',
@@ -61,6 +59,13 @@ var styles = StyleSheet.create({
   image: {
     width: 217,
     height: 138
+  },
+  scrol_container: {
+    marginTop: 20
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#DDDDDD'
   }
 });
 
@@ -128,32 +133,31 @@ class SearchPage extends Component {
       ( <ActivityIndicator
           size='large'/> ) :
       ( <View/>);
+
+    var type_list = this.props.navigation.state.params.type_list;
+
     console.log('SearchPage.render');
     return (
-      <View style={styles.container}>
+      <ScrollView style={styles.scrol_container}>
         <Text style={styles.description}>
-          Search for houses to buy!
+          Tìm kiếm {this.props.navigation.state.params.type_name} ngay:
         </Text>
-        <Text style={styles.description}>
-          Search by place-name, postcode or search near your location.
-        </Text>
-        <View style={styles.flowRight}>
-          <TextInput
-            style={styles.searchInput}
-            value={this.state.searchString}
-            onChange={this.onSearchTextChanged.bind(this)}
-            placeholder='Search via name or postcode'/>
+        <View style={styles.container}>
+          {type_list.map((prop, key) => {
+             return (
+               <TextInput style={styles.searchInput} key={key} placeholder={prop.expand_name+" ("+prop.measure_unit+")"} />
+             );
+          })}
           <TouchableHighlight
               style={styles.button}
               onPress={this.onSearchPressed.bind(this)}
               underlayColor='#99d9f4'>
-            <Text style={styles.buttonText}>Go</Text>
+            <Text style={styles.buttonText}>Tìm kiếm</Text>
           </TouchableHighlight>
         </View>
-        <Image source={require('./Resources/house.png')} style={styles.image}/>
         {spinner}
         <Text style={styles.description}>{this.state.message}</Text>
-      </View>
+      </ScrollView>
     );
   }
 }
