@@ -1,17 +1,18 @@
 'use strict';
 
 import React, { Component } from 'react'
+import Geocoder from 'react-native-geocoding';
 import {
   StyleSheet,
   View
 } from 'react-native';
 
-import MapView from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    height: 400,
+    height: '100%',
     width: 400,
     justifyContent: 'flex-end',
     alignItems: 'center',
@@ -23,21 +24,28 @@ const styles = StyleSheet.create({
 
 class MapsPage extends React.Component {
   render() {
-    const { region } = this.props;
-    const { params } = this.props.navigation.state;
+    var region={
+            latitude: this.props.navigation.state.params.latitude,
+            longitude: this.props.navigation.state.params.longitude,
+            latitudeDelta: 0.015,
+            longitudeDelta: 0.0121,
+          };
     console.log(region);
-
     return (
       <View style ={styles.container}>
         <MapView
           style={styles.map}
-          region={{
-            latitude: params.latitude,
-            longitude: params.longitude,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121,
-          }}
+          region={region}
+          height="100%"
         >
+            <Marker
+              coordinate={{
+                latitude: region.latitude,
+                longitude: region.longitude,
+              }}
+              title={this.props.navigation.state.params.prop_name}
+              description={this.props.navigation.state.params.prop_price}
+            />
         </MapView>
       </View>
     );

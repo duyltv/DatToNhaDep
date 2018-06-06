@@ -108,7 +108,7 @@ class SearchResults extends Component {
     var content = await this.getContent(content_id);
     console.log(content);
 
-    this.props.navigation.navigate('PropertyView', {content: content} );
+    await this.props.navigation.navigate('PropertyView', {content: content} );
   }
 
 

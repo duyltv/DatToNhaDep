@@ -2,6 +2,7 @@
 
 import React, { Component } from 'react'
 import ImageSlider from 'react-native-image-slider'
+import { Button } from 'react-native';
 import { SERVER } from './configs'
 import {
   StyleSheet,
@@ -77,6 +78,19 @@ var styles = StyleSheet.create({
   address: {
     fontSize: 13,
     color: '#656565'
+  },
+  buttonSelected: {
+    opacity: 1,
+    color: 'red',
+  },
+  customSlide: {
+    backgroundColor: 'green',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customImage: {
+    width: 100,
+    height: 100,
   }
 });
 
@@ -85,19 +99,43 @@ class PropertyView extends Component {
     title: `${navigation.state.params.content.title}`
   });
 
-  onLocationPressed() {
-    var content = this.props.navigation.state.params.content;
-    this.props.navigation.navigate('MapsPage',
-    {
-      longitude: 0,
-      latitude: 0,
-    });
+  async onLocationPressed() {
+
   }
 
   b64DecodeUnicode(str) {
     return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
     }).join(''));
+  }
+
+  async onMapPressed(address) {
+    let response = await fetch(
+      'https://geocoder.cit.api.here.com/6.2/geocode.json?searchtext='+encodeURIComponent(address)+'&app_id=FBF6cDCEZaRWCPmaRukF&app_code=bMR-YearZ60Uiywcai_8jw&gen=1'
+    );
+    console.log(response);
+    let responseJson = await response.json();
+    var long = await responseJson.Response.View[0].Result[0].Location.DisplayPosition.Longitude;
+    var lat = await responseJson.Response.View[0].Result[0].Location.DisplayPosition.Latitude;
+    var content = this.props.navigation.state.params.content;
+
+    var price = content.price;
+    if (price > 1000)
+    {
+      price = price / 1000;
+      price = price + " tỷ";
+    }
+    else
+    {
+      price = price + " triệu";
+    }
+    await this.props.navigation.navigate('MapsPage',
+    {
+      longitude: long,
+      latitude: lat,
+      prop_name: content.title,
+      prop_price: price
+    });
   }
 
   render() {
@@ -127,10 +165,38 @@ class PropertyView extends Component {
 
     return (
       <ScrollView style={styles.container}>
-        <ImageSlider images={images}  />
+        <ImageSlider
+          loopBothSides
+          autoPlayWithInterval={3000}
+          images={images}
+          customSlide={({ index, item, style, width }) => (
+            <View key={index} style={[style, styles.customSlide]}>
+              <Image source={{ uri: item }} style={styles.customImage} />
+            </View>
+          )}
+          customButtons={(position, move) => (
+            <View style={styles.buttons}>
+              {images.map((image, index) => {
+                return (
+                  <TouchableHighlight
+                    key={index}
+                    underlayColor="#ccc"
+                    onPress={() => move(index)}
+                    style={styles.button}
+                  >
+                    <Text style={position === index && styles.buttonSelected}>
+                      {index + 1}
+                    </Text>
+                  </TouchableHighlight>
+                );
+              })}
+            </View>
+          )}
+        />
         <View style={styles.heading}>
           <Text style={styles.title}>{content.title}</Text>
           <Text style={styles.price}>{price}</Text>
+          <Button title="Mở bản đồ" onPress={() => this.onMapPressed(content.address)}/>
           <Text style={styles.address}>{content.address}</Text>
           <View style={styles.separator}/>
         </View>
