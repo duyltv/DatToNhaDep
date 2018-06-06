@@ -803,7 +803,7 @@ class Index_Controller extends BK_Controller
 
         return array (  "mcode" => "add_role_define",
                         "status" => "error",
-                        "date" => "fail"
+                        "data" => "fail"
                     );
     }
 
@@ -845,7 +845,7 @@ class Index_Controller extends BK_Controller
 
         return array (  "mcode" => "add_role",
                         "status" => "error",
-                        "date" => "fail"
+                        "data" => "fail"
                     );
     }
 
@@ -907,7 +907,7 @@ class Index_Controller extends BK_Controller
 
         return array (  "mcode" => "add_transaction",
                         "status" => "error",
-                        "date" => "fail"
+                        "data" => "fail"
                     );
     }
 
@@ -940,7 +940,7 @@ class Index_Controller extends BK_Controller
 
         return array (  "mcode" => "get_content_list_owner",
                         "status" => "error",
-                        "date" => "fail"
+                        "data" => "fail"
                     );
     }
 
@@ -952,7 +952,7 @@ class Index_Controller extends BK_Controller
 
             return array (  "mcode" => "get_content",
                             "status" => "success",
-                            "date" => $content
+                            "data" => $content
                         );
         }
         else
@@ -968,13 +968,13 @@ class Index_Controller extends BK_Controller
 
                 return array (  "mcode" => "get_content",
                                 "status" => "success",
-                                "date" => $content
+                                "data" => $content
                             );
             }
 
             return array (  "mcode" => "get_content",
                             "status" => "error",
-                            "date" => "fail"
+                            "data" => "fail"
                         );
         }
     }

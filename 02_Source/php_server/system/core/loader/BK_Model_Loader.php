@@ -300,7 +300,7 @@ class BK_Model_Loader
 			$this->load('content');
 		}
 
-		$query = "select content_id, title, avatar, stretch, price, priority, status, date, expiredate, type_id 
+		$query = "select content_id, title, avatar, stretch, price, address, priority, status, date, expiredate, type_id 
 		         from content
 		         where type_id=\"".$type_id."\"
 		         and CURDATE()>=STR_TO_DATE(date, '%d/%m/%Y')
@@ -330,7 +330,7 @@ class BK_Model_Loader
 			$this->load('content');
 		}
 
-		$query = "select content_id, title, avatar, stretch, price, priority, status, date, expiredate, type_id 
+		$query = "select content_id, title, avatar, address, stretch, price, priority, status, date, expiredate, type_id 
 		         from content
 		         where user_id=\"".$user_id."\"
 		         and status=\"1\"
@@ -358,7 +358,7 @@ class BK_Model_Loader
 			$this->load('content');
 		}
 
-		$query = "select content_id, title, avatar, stretch, price, priority, status, date, expiredate, type_id 
+		$query = "select content_id, title, avatar, address, stretch, price, priority, status, date, expiredate, type_id 
 		         from content
 		         where user_id=\"".$user_id."\"";
 
@@ -409,6 +409,16 @@ class BK_Model_Loader
 			}
 
 			$row["expand_content"] = $result_row;
+
+			$query_images = "select image_url from images where content_id=\"".$content_id."\"";
+
+			$result_images_row = $this->mysqli_query_internal($this->conn,$query_images);
+			$result_images = array();
+			while ($row_t = mysqli_fetch_array($result_images_row, MYSQLI_ASSOC)) {
+				$result_images[] = $row_t;
+			}
+
+			$row["images"] = $result_images;
 
 			$result[] = $row;
 		}
