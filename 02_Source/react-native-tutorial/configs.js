@@ -1,1 +1,1 @@
-export const SERVER = 'http://192.168.137.1/DTND/'
+export const SERVER = 'http://dattonhadep.com/api/'
