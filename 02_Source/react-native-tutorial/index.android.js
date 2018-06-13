@@ -14,6 +14,8 @@ var PropertyView = require('./PropertyView');
 
 var MapsPage = require('./MapsPage');
 
+var TakePhotoForRegconize = require('./TakePhotoForRegconize');
+
 var styles = ReactNative.StyleSheet.create({
   text: {
     color: 'black',
@@ -71,6 +73,10 @@ class HomeScreen extends React.Component {
     await this.props.navigation.navigate('SearchPage', {type_list: type_list, type_id: type_id, type_name: type_name} );
   }
 
+  async takePhotoPress() {
+      await this.props.navigation.navigate('TakePhotoForRegconize');
+  }
+
   render() {
     const { navigate } = this.props.navigation;
 
@@ -94,6 +100,11 @@ class HomeScreen extends React.Component {
               <ReactNative.Button onPress={() => this.rowPressed(4)} title="Đất cho thuê" color="#27a53c" />
             </ReactNative.View>
           </ReactNative.View>
+          <ReactNative.View style={styles.container_row}>
+            <ReactNative.View style={styles.button}>
+              <ReactNative.Button onPress={() => this.takePhotoPress()} title="Tìm nhanh" color="#27a53c" />
+            </ReactNative.View>
+          </ReactNative.View>
         </ReactNative.View>
       </ReactNative.View>
     );
@@ -105,7 +116,8 @@ const PropertyFinderApp = ReactNavigation.StackNavigator({
   SearchPage: { screen: SearchPage },
   SearchResults: { screen: SearchResults },
   PropertyView: { screen: PropertyView },
-  MapsPage: { screen: MapsPage }
+  MapsPage: { screen: MapsPage },
+  TakePhotoForRegconize: { screen: TakePhotoForRegconize }
 });
 
 
